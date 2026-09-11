@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Turnierteilnahme – VfM Bottrop</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#fff;color:#111}header{padding:28px 20px;border-bottom:1px solid #ddd}
+main{max-width:950px;margin:auto;padding:30px 20px}h1{margin:0 0 6px}h2{margin-top:30px}
+.tournament{border-bottom:1px solid #ddd;padding:18px 0}.tournament h3{margin:0 0 7px}
+.meta{color:#666;margin-bottom:12px}button{background:#111;color:#fff;border:0;padding:10px 16px;cursor:pointer}
+button:hover{opacity:.85}.admin{margin-top:35px;border-top:1px solid #ddd;padding-top:20px}a{color:#111}
+</style></head><body>
+<header><main><h1>Turnierteilnahme</h1><div>VfM Bottrop</div></main></header>
+<main><h2>Turniere</h2><div id="list"></div><div class="admin"><a href="admin.html">Turnierverwaltung</a></div></main>
+<script>
+const KEY="turnierteilnahme_turniere";
+const examples=[
+{id:"vm2026",name:"Vereinsmeisterschaft 2026",date:"2026-09-20"},
+{id:"herbst2026",name:"Herbstturnier 2026",date:"2026-10-11"},
+{id:"abschluss2026",name:"Abschlussturnier 2026",date:"2026-11-08"}];
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function load(){let x=JSON.parse(localStorage.getItem(KEY)||"null");if(!Array.isArray(x)){x=examples;localStorage.setItem(KEY,JSON.stringify(x))}return x}
+function date(v){return v?new Date(v+"T00:00:00").toLocaleDateString("de-DE"):""}
+function render(){let x=load(),box=document.getElementById("list");box.innerHTML=x.length?x.map(t=>`<div class="tournament"><h3>${esc(t.name)}</h3><div class="meta">${date(t.date)}</div><button onclick="location.href='turnier.html?turnier='+encodeURIComponent('${esc(t.id)}')">Teilnehmer</button></div>`).join(""):"<p>Aktuell sind keine Turniere angelegt.</p>"}
+render();
+</script></body></html>

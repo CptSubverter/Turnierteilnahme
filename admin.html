@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Turnierverwaltung – VfM Bottrop</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#fff;color:#111}header{padding:28px 20px;border-bottom:1px solid #ddd}
+main{max-width:950px;margin:auto;padding:30px 20px}h1{margin:0 0 6px}h2{margin-top:30px}
+.form{border:1px solid #ddd;padding:20px}label{display:block;font-weight:bold;margin:14px 0 5px}
+input{width:100%;box-sizing:border-box;padding:10px;border:1px solid #bbb;font:inherit}
+button{background:#111;color:#fff;border:0;padding:10px 14px;cursor:pointer;margin:6px 5px 6px 0}.delete{background:#fff;color:#111;border:1px solid #111}
+.item{border-bottom:1px solid #ddd;padding:18px 0}.date{color:#666;margin:5px 0 10px}a{color:#111}
+.note{margin-top:25px;padding:12px;background:#f3f3f3;font-size:14px}
+</style></head><body>
+<header><main><h1>Turnierverwaltung</h1><div>VfM Bottrop</div></main></header>
+<main><a href="index.html">← Zur Turnierübersicht</a>
+<div class="form"><h2>Neues Turnier anlegen</h2>
+<label>Turniername *</label><input id="name">
+<label>Datum</label><input id="date" type="date">
+<button onclick="add()">Turnier anlegen</button></div>
+<h2>Vorhandene Turniere</h2><div id="list"></div>
+<div class="note"><b>Testversion:</b> Die Daten werden derzeit nur im Browser (localStorage) gespeichert. Für die spätere öffentliche Version wird eine zentrale Datenbank benötigt.</div>
+</main>
+<script>
+const KEY="turnierteilnahme_turniere";
+function load(){return JSON.parse(localStorage.getItem(KEY)||"[]")}
+function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function fmt(v){return v?new Date(v+"T00:00:00").toLocaleDateString("de-DE"):""}
+function add(){let n=document.getElementById("name").value.trim(),d=document.getElementById("date").value;if(!n){alert("Bitte einen Turniernamen eingeben.");return}
+let x=load();x.push({id:"turnier_"+Date.now(),name:n,date:d});save(x);document.getElementById("name").value="";document.getElementById("date").value="";render()}
+function del(id){let t=load().find(x=>x.id===id);if(!t)return;if(confirm('Turnier "'+t.name+'" wirklich löschen?')){save(load().filter(x=>x.id!==id));localStorage.removeItem("turnierteilnahme_teilnehmer_"+id);render()}}
+function render(){let x=load();document.getElementById("list").innerHTML=x.length?x.map(t=>`<div class="item"><b>${esc(t.name)}</b><div class="date">${fmt(t.date)}</div><a href="turnier.html?turnier=${encodeURIComponent(t.id)}"><button>Teilnehmer</button></a><button class="delete" onclick="del('${esc(t.id)}')">Löschen</button></div>`).join(""):"<p>Noch keine Turniere angelegt.</p>"}
+render();
+</script></body></html>
