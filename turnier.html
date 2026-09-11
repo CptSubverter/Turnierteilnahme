@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Teilnehmer – VfM Bottrop</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #ffffff;
+    color: #222222;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 35px 20px 60px;
+}
+
+
+/* Kopf */
+
+.back {
+    display: inline-block;
+    margin-bottom: 25px;
+    color: #555;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.back:hover {
+    text-decoration: underline;
+}
+
+.header {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    font-weight: 600;
+}
+
+.date {
+    color: #666;
+    font-size: 15px;
+}
+
+
+/* Anmeldung */
+
+.registration {
+    margin-bottom: 45px;
+}
+
+.registration h2,
+.participants h2 {
+    margin: 0 0 20px;
+    font-size: 23px;
+    font-weight: 600;
+}
+
+.form {
+    display: grid;
+
+    grid-template-columns:
+        1fr
+        1fr
+        150px
+        1fr
+        1.4fr
+        auto;
+
+    gap: 13px;
+
+    align-items: end;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.optional {
+    color: #777;
+    font-weight: normal;
+}
+
+input,
+select {
+    width: 100%;
+    height: 44px;
+
+    padding: 0 10px;
+
+    border: 1px solid #ccc;
+    border-radius: 3px;
+
+    background: white;
+
+    font-family: inherit;
+    font-size: 15px;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #555;
+}
+
+button {
+    height: 44px;
+
+    padding: 0 22px;
+
+    border: 1px solid #222;
+    border-radius: 3px;
+
+    background: #222;
+    color: white;
+
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+button:hover {
+    background: white;
+    color: #222;
+}
+
+
+/* Meldung */
+
+.success {
+    display: none;
+
+    margin-top: 15px;
+    padding: 12px 15px;
+
+    border-left: 3px solid #222;
+
+    background: #f7f7f7;
+
+    color: #333;
+}
+
+
+/* Teilnehmer */
+
+.participant-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 15px;
+}
+
+.participant-head h2 {
+    margin: 0;
+}
+
+.count {
+    color: #666;
+    font-size: 15px;
+}
+
+.count strong {
+    color: #222;
+}
+
+
+/* Tabelle */
+
+.table-wrapper {
+    overflow-x: auto;
+
+    border-top: 1px solid #222;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    padding: 13px 10px;
+
+    border-bottom: 1px solid #222;
+
+    text-align: left;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+td {
+    padding: 13px 10px;
+
+    border-bottom: 1px solid #ddd;
+
+    font-size: 15px;
+}
+
+tbody tr:hover {
+    background: #fafafa;
+}
+
+.empty {
+    padding: 25px;
+    text-align: center;
+    color: #777;
+}
+
+
+/* Mobil */
+
+@media (max-width: 900px) {
+
+    .form {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    button {
+        width: 100%;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .container {
+        padding: 25px 14px 45px;
+    }
+
+    .header h1 {
+        font-size: 27px;
+    }
+
+    .form {
+        grid-template-columns: 1fr;
+    }
+
+    .participant-head {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    table {
+        min-width: 700px;
+    }
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+    <!-- Zurück -->
+
+    <a
+        href="index.html"
+        class="back"
+    >
+        ← Zurück zu den Turnieren
+    </a>
+
+
+    <!-- Turnier -->
+
+    <div class="header">
+
+        <h1>
+            Vereinsmeisterschaft 2026
+        </h1>
+
+        <div class="date">
+            20.09.2026
+        </div>
+
+    </div>
+
+
+    <!-- Anmeldung -->
+
+    <section class="registration">
+
+        <h2>
+            Teilnahme anmelden
+        </h2>
+
+
+        <form id="registrationForm">
+
+            <div class="form">
+
+
+                <!-- Vorname -->
+
+                <div>
+
+                    <label for="firstName">
+                        Vorname *
+                    </label>
+
+                    <input
+                        id="firstName"
+                        type="text"
+                        required
+                        placeholder="Vorname"
+                    >
+
+                </div>
+
+
+                <!-- Nachname -->
+
+                <div>
+
+                    <label for="lastName">
+                        Nachname *
+                    </label>
+
+                    <input
+                        id="lastName"
+                        type="text"
+                        required
+                        placeholder="Nachname"
+                    >
+
+                </div>
+
+
+                <!-- Passnummer -->
+
+                <div>
+
+                    <label for="passNumber">
+
+                        Passnummer
+                        <span class="optional">
+                            (optional)
+                        </span>
+
+                    </label>
+
+                    <input
+                        id="passNumber"
+                        type="text"
+                        placeholder="Passnummer"
+                    >
+
+                </div>
+
+
+                <!-- Kategorie -->
+
+                <div>
+
+                    <label for="category">
+
+                        Kategorie
+                        <span class="optional">
+                            (optional)
+                        </span>
+
+                    </label>
+
+                    <select id="category">
+
+                        <option value="">
+                            Keine Angabe
+                        </option>
+
+                        <option value="Schüler">
+                            Schüler
+                        </option>
+
+                        <option value="Jugend">
+                            Jugend
+                        </option>
+
+                        <option value="Damen">
+                            Damen
+                        </option>
+
+                        <option value="Herren">
+                            Herren
+                        </option>
+
+                        <option value="Seniorinnen">
+                            Seniorinnen
+                        </option>
+
+                        <option value="Senioren">
+                            Senioren
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Bemerkung -->
+
+                <div>
+
+                    <label for="remark">
+
+                        Bemerkung
+                        <span class="optional">
+                            (optional)
+                        </span>
+
+                    </label>
+
+                    <input
+                        id="remark"
+                        type="text"
+                        placeholder="Bemerkung"
+                    >
+
+                </div>
+
+
+                <!-- Anmeldung -->
+
+                <button type="submit">
+                    Anmelden
+                </button>
+
+
+            </div>
+
+        </form>
+
+
+        <div
+            id="success"
+            class="success"
+        >
+            ✓ Teilnahme erfolgreich eingetragen.
+        </div>
+
+    </section>
+
+
+    <!-- Teilnehmerliste -->
+
+    <section>
+
+        <div class="participant-head">
+
+            <h2>
+                Teilnehmer
+            </h2>
+
+            <div class="count">
+
+                <strong id="count">
+                    0
+                </strong>
+
+                Teilnehmer
+
+            </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Nr.
+                        </th>
+
+                        <th>
+                            Vorname
+                        </th>
+
+                        <th>
+                            Nachname
+                        </th>
+
+                        <th>
+                            Passnummer
+                        </th>
+
+                        <th>
+                            Kategorie
+                        </th>
+
+                        <th>
+                            Bemerkung
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="participants">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<script>
+
+/*
+==================================================
+TESTSPEICHER
+==================================================
+
+Diese Version speichert die Teilnehmer nur
+im Browser.
+
+Später wird dieser Bereich durch die zentrale
+Turnierteilnahme-Datenbank ersetzt.
+==================================================
+*/
+
+
+const STORAGE_KEY =
+    "turnierteilnahme_vm2026";
+
+
+let participants =
+    JSON.parse(
+        localStorage.getItem(
+            STORAGE_KEY
+        )
+    ) || [];
+
+
+/*
+==================================================
+SICHERE TEXTAUSGABE
+==================================================
+*/
+
+function safe(value) {
+
+    const element =
+        document.createElement("div");
+
+    element.textContent =
+        value;
+
+    return element.innerHTML;
+}
+
+
+/*
+==================================================
+TEILNEHMERLISTE
+==================================================
+*/
+
+function renderParticipants() {
+
+    const table =
+        document.getElementById(
+            "participants"
+        );
+
+    const count =
+        document.getElementById(
+            "count"
+        );
+
+
+    table.innerHTML = "";
+
+
+    count.textContent =
+        participants.length;
+
+
+    if (participants.length === 0) {
+
+        table.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="6"
+                    class="empty"
+                >
+
+                    Noch keine Teilnehmer
+                    angemeldet.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+    }
+
+
+    participants.forEach(
+        function(person, index) {
+
+            const row =
+                document.createElement("tr");
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${index + 1}
+                </td>
+
+                <td>
+                    ${safe(
+                        person.firstName
+                    )}
+                </td>
+
+                <td>
+                    ${safe(
+                        person.lastName
+                    )}
+                </td>
+
+                <td>
+                    ${
+                        person.passNumber
+                        ? safe(
+                            person.passNumber
+                        )
+                        : "–"
+                    }
+                </td>
+
+                <td>
+                    ${
+                        person.category
+                        ? safe(
+                            person.category
+                        )
+                        : "–"
+                    }
+                </td>
+
+                <td>
+                    ${
+                        person.remark
+                        ? safe(
+                            person.remark
+                        )
+                        : "–"
+                    }
+                </td>
+
+            `;
+
+
+            table.appendChild(row);
+
+        }
+    );
+
+}
+
+
+/*
+==================================================
+ANMELDUNG
+==================================================
+*/
+
+document
+    .getElementById(
+        "registrationForm"
+    )
+    .addEventListener(
+        "submit",
+        function(event) {
+
+            event.preventDefault();
+
+
+            const firstName =
+                document
+                    .getElementById(
+                        "firstName"
+                    )
+                    .value
+                    .trim();
+
+
+            const lastName =
+                document
+                    .getElementById(
+                        "lastName"
+                    )
+                    .value
+                    .trim();
+
+
+            const passNumber =
+                document
+                    .getElementById(
+                        "passNumber"
+                    )
+                    .value
+                    .trim();
+
+
+            const category =
+                document
+                    .getElementById(
+                        "category"
+                    )
+                    .value;
+
+
+            const remark =
+                document
+                    .getElementById(
+                        "remark"
+                    )
+                    .value
+                    .trim();
+
+
+            /*
+            Nur Vorname und Nachname
+            sind Pflicht.
+            */
+
+            if (
+                !firstName ||
+                !lastName
+            ) {
+
+                alert(
+                    "Bitte Vorname und Nachname eingeben."
+                );
+
+                return;
+
+            }
+
+
+            /*
+            Teilnehmer hinzufügen
+            */
+
+            participants.push({
+
+                firstName:
+                    firstName,
+
+                lastName:
+                    lastName,
+
+                passNumber:
+                    passNumber,
+
+                category:
+                    category,
+
+                remark:
+                    remark
+
+            });
+
+
+            /*
+            Speichern
+            */
+
+            localStorage.setItem(
+
+                STORAGE_KEY,
+
+                JSON.stringify(
+                    participants
+                )
+
+            );
+
+
+            /*
+            Formular leeren
+            */
+
+            document
+                .getElementById(
+                    "registrationForm"
+                )
+                .reset();
+
+
+            /*
+            Liste aktualisieren
+            */
+
+            renderParticipants();
+
+
+            /*
+            Erfolgsmeldung
+            */
+
+            const success =
+                document.getElementById(
+                    "success"
+                );
+
+
+            success.style.display =
+                "block";
+
+
+            setTimeout(
+                function() {
+
+                    success.style.display =
+                        "none";
+
+                },
+                3000
+            );
+
+        }
+    );
+
+
+/*
+==================================================
+START
+==================================================
+*/
+
+renderParticipants();
+
+</script>
+
+</body>
+</html>
