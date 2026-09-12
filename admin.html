@@ -105,6 +105,27 @@
   </div>
 </div>
 
+
+<div id="tournamentModal" class="modal">
+  <div class="modal-box">
+    <h2 style="margin-top:0">Turnier bearbeiten</h2>
+    <form id="tournamentEditForm">
+      <input id="editTournamentId" type="hidden">
+
+      <label for="editTournamentName">Turniername *</label>
+      <input id="editTournamentName" required maxlength="200">
+
+      <label for="editTournamentDate">Datum</label>
+      <input id="editTournamentDate" type="date">
+
+      <div class="modal-actions">
+        <button type="submit">Speichern</button>
+        <button type="button" class="secondary" id="cancelTournamentEdit">Abbrechen</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 const API="https://turnierteilnahme-api.michael-hoever.workers.dev";
 
@@ -173,11 +194,22 @@ async function renderTournaments(tournaments){
           <div class="tournament-name">${esc(t.name)}</div>
           <div class="tournament-date">${t.datum ? esc(t.datum) : ""} · ID: ${esc(t.id)}</div>
         </div>
-        <button class="danger delete-tournament">Turnier löschen</button>
+        <button type="button" class="secondary edit-tournament">Turnier bearbeiten</button> <button type="button" class="secondary open-tournament">Turnier öffnen</button> <button class="danger delete-tournament">Turnier löschen</button>
       </div>
       <div class="participants">Teilnehmer werden geladen …</div>
     `;
     container.appendChild(div);
+
+    div.querySelector(".edit-tournament").addEventListener("click",()=>{
+      $("editTournamentId").value=t.id;
+      $("editTournamentName").value=t.name || "";
+      $("editTournamentDate").value=t.datum || "";
+      $("tournamentModal").style.display="flex";
+    });
+
+    div.querySelector(".open-tournament").addEventListener("click",()=>{
+      window.open("turnier.html?turnier="+encodeURIComponent(t.id),"_blank");
+    });
 
     div.querySelector(".delete-tournament").addEventListener("click",async()=>{
       if(!confirm('Turnier "'+t.name+'" wirklich löschen?\\nAlle Teilnehmer dieses Turniers werden ebenfalls gelöscht.')) return;
@@ -332,6 +364,34 @@ $("cancelEdit").addEventListener("click",closeEdit);
 
 $("editModal").addEventListener("click",e=>{
   if(e.target===$("editModal")) closeEdit();
+});
+
+
+$("tournamentEditForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const id=$("editTournamentId").value;
+  try{
+    await api("/api/turniere/"+encodeURIComponent(id),{
+      method:"PUT",
+      headers:authHeaders(),
+      body:JSON.stringify({
+        name:$("editTournamentName").value.trim(),
+        datum:$("editTournamentDate").value
+      })
+    });
+    $("tournamentModal").style.display="none";
+    await loadAdmin();
+  }catch(err){
+    alert("Fehler: "+err.message);
+  }
+});
+
+$("cancelTournamentEdit").addEventListener("click",()=>{
+  $("tournamentModal").style.display="none";
+});
+
+$("tournamentModal").addEventListener("click",e=>{
+  if(e.target===$("tournamentModal")) $("tournamentModal").style.display="none";
 });
 
 const saved=sessionStorage.getItem("turnierteilnahme_admin_token");
