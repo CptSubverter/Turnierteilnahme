@@ -194,7 +194,8 @@ async function renderTournaments(tournaments){
 
     const participantsBox=div.querySelector(".participants");
     try{
-      const participants=await api("/api/turniere/"+encodeURIComponent(t.id)+"/teilnehmer");
+      const rawParticipants=await api("/api/turniere/"+encodeURIComponent(t.id)+"/teilnehmer");
+      const participants=Array.isArray(rawParticipants)?rawParticipants:(rawParticipants.teilnehmer||rawParticipants.results||[]);
       renderParticipants(participantsBox,t,participants);
     }catch(err){
       participantsBox.textContent="Fehler beim Laden: "+err.message;
