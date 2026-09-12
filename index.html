@@ -14,16 +14,19 @@ h1{font-size:32px;line-height:1.15;margin:0;font-weight:700}
 .intro{font-size:17px;line-height:1.55;margin:0 0 28px;color:#333}
 #turniere{border-top:1px solid #d7d7d7}
 .tournament{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:20px 0;border-bottom:1px solid #d7d7d7}
+.tournament-info{flex:1}
 .tournament h2{font-size:20px;margin:0 0 6px;font-weight:700}
 .date{font-size:15px;color:#666}
-.button{display:inline-block;white-space:nowrap;text-decoration:none;background:#171717;color:#fff;padding:10px 15px;border-radius:3px;font-size:15px}
+.button{display:inline-block;white-space:nowrap;text-decoration:none;background:#171717;color:#fff;padding:10px 15px;border-radius:3px;font-size:15px;border:0;cursor:pointer}
 .button:hover{opacity:.88}
+.error{padding:18px 0;color:#a00000}
+.loading{padding:18px 0;color:#666}
 footer{margin-top:35px;padding-top:18px;border-top:1px solid #ddd;color:#777;font-size:13px}
 @media(max-width:650px){
- main{padding:28px 16px 45px}
- h1{font-size:28px}
- .tournament{align-items:flex-start;flex-direction:column;gap:13px}
- .button{width:100%;text-align:center}
+main{padding:28px 16px 45px}
+h1{font-size:28px}
+.tournament{align-items:flex-start;flex-direction:column;gap:13px}
+.button{width:100%;text-align:center}
 }
 </style>
 </head>
@@ -34,34 +37,73 @@ footer{margin-top:35px;padding-top:18px;border-top:1px solid #ddd;color:#777;fon
 <h1>Turnierteilnahme</h1>
 </header>
 <p class="intro">Hier findest du die aktuellen Turniere und kannst die jeweilige Teilnehmerliste einsehen oder dich anmelden.</p>
-<section id="turniere"><p>Turniere werden geladen …</p></section>
+<section id="turniere">
+<p class="loading">Turniere werden geladen …</p>
+</section>
 <footer>Turnierteilnahme · VfM Bottrop</footer>
 </main>
 <script>
 const API="https://turnierteilnahme-api.michael-hoever.workers.dev";
-function esc(v){return String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
-function date(v){return v?new Date(v+"T00:00:00").toLocaleDateString("de-DE"):"";}
-async function load(){
- const box=document.getElementById("list");
- try{
-  const response=await fetch(API+"/api/turniere");
-  if(!response.ok)throw new Error("HTTP "+response.status);
-  const data=await response.json();
-  if(!data.ok)throw new Error(data.error||"Fehler beim Laden der Turniere");
-  const turniere=data.turniere||[];
-  if(!turniere.length){box.innerHTML="<p>Aktuell sind keine Turniere angelegt.</p>";return;}
-  box.innerHTML=turniere.map(t=>`
-   <div class="tournament">
-    <h3>${esc(t.name)}</h3>
-    <div class="meta">${date(t.datum)}</div>
-    <button onclick="openTournament('${encodeURIComponent(t.id)}')">Teilnehmer</button>
-   </div>`).join("");
- }catch(error){
-  console.error(error);
-  box.innerHTML='<div class="error">Die Turnierliste konnte nicht geladen werden.</div>';
- }
+
+function esc(v){
+  return String(v ?? "").replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[c]));
 }
-function openTournament(id){location.href="turnier.html?turnier="+id;}
+
+function date(v){
+  if(!v) return "";
+  return new Date(v+"T00:00:00").toLocaleDateString("de-DE");
+}
+
+async function load(){
+  const box=document.getElementById("turniere");
+
+  try{
+    const response=await fetch(API+"/api/turniere");
+
+    if(!response.ok) throw new Error("HTTP "+response.status);
+
+    const data=await response.json();
+
+    if(!data.ok){
+      throw new Error(data.error||"Fehler beim Laden der Turniere");
+    }
+
+    const turniere=data.turniere||[];
+
+    if(!turniere.length){
+      box.innerHTML="<p>Aktuell sind keine Turniere angelegt.</p>";
+      return;
+    }
+
+    box.innerHTML=turniere.map(t=>`
+      <div class="tournament">
+        <div class="tournament-info">
+          <h2>${esc(t.name)}</h2>
+          <div class="date">${date(t.datum)}</div>
+        </div>
+        <button class="button"
+          onclick="openTournament('${encodeURIComponent(t.id)}')">
+          Teilnehmer
+        </button>
+      </div>
+    `).join("");
+
+  }catch(error){
+    console.error(error);
+    box.innerHTML=`
+      <div class="error">
+        Die Turnierliste konnte nicht geladen werden.
+      </div>
+    `;
+  }
+}
+
+function openTournament(id){
+  location.href="turnier.html?turnier="+id;
+}
+
 load();
 </script>
 </body>
