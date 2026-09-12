@@ -1,149 +1,342 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Turnierverwaltung – VfM Bottrop</title>
+<title>Turnierteilnahme – Administration</title>
 <style>
-body{font-family:Arial,sans-serif;margin:0;background:#fff;color:#111}
-header{padding:28px 20px;border-bottom:1px solid #ddd}
-main{max-width:1000px;margin:auto;padding:30px 20px}
-h1{margin:0 0 6px}h2{margin-top:30px}
-.back{color:#111}
-form{border:1px solid #ddd;padding:20px;margin:20px 0}
-.grid{display:grid;grid-template-columns:2fr 1fr;gap:14px}
-label{display:flex;flex-direction:column;gap:6px;font-weight:bold}
-input{font:inherit;padding:10px;border:1px solid #bbb;box-sizing:border-box}
-button{background:#111;color:#fff;border:0;padding:10px 16px;cursor:pointer}
-button:hover{opacity:.85}
-button.danger{background:#900}
-button:disabled{opacity:.5}
-.message{margin-top:12px}
-.error{color:#b00020}.success{color:#176b2c}.info{color:#666}
-.tournament{border-bottom:1px solid #ddd;padding:16px 0;display:flex;justify-content:space-between;gap:20px;align-items:center}
-.meta{color:#666;margin-top:5px}
-@media(max-width:700px){.grid{grid-template-columns:1fr}.tournament{align-items:flex-start;flex-direction:column}}
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}
+  main{max-width:1100px;margin:0 auto;padding:32px 20px 50px}
+  h1{font-size:28px;margin:0 0 8px}
+  h2{font-size:21px;margin:32px 0 14px}
+  .meta{color:#666;font-size:14px;margin-bottom:20px}
+  label{display:block;font-weight:600;margin:14px 0 6px}
+  input,button{font:inherit}
+  input{width:100%;max-width:520px;padding:10px 12px;border:1px solid #bbb;border-radius:4px}
+  button{padding:9px 14px;border:1px solid #222;background:#111;color:#fff;border-radius:4px;cursor:pointer}
+  button.secondary{background:#fff;color:#111}
+  button.danger{background:#fff;color:#b00020;border-color:#b00020}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  form{max-width:650px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .tournament{border-top:1px solid #ddd;padding:18px 0}
+  .tournament-head{display:flex;justify-content:space-between;gap:15px;align-items:center}
+  .tournament-name{font-size:18px;font-weight:700}
+  .tournament-date{color:#666;font-size:14px;margin-top:4px}
+  .participants{margin-top:14px;overflow-x:auto}
+  table{border-collapse:collapse;width:100%;min-width:850px}
+  th,td{border:1px solid #ddd;padding:9px 10px;text-align:left;vertical-align:top}
+  th{font-weight:700;background:#f7f7f7}
+  .actions{white-space:nowrap}
+  .actions button{margin-right:6px}
+  .status{margin:14px 0;padding:10px 12px;border:1px solid #ddd;background:#fafafa;display:none}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;padding:20px}
+  .modal-box{background:#fff;width:min(620px,100%);padding:24px;border-radius:6px}
+  .modal-actions{display:flex;gap:10px;margin-top:20px}
+  @media(max-width:700px){.row{grid-template-columns:1fr}.tournament-head{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body>
-<header><main><h1>Turnierverwaltung</h1><div>VfM Bottrop</div></main></header>
 <main>
-<p><a class="back" href="index.html">← Zurück zu den Turnieren</a></p>
+  <h1>Turnierteilnahme – Administration</h1>
+  <div class="meta">Turniere und Teilnehmer zentral verwalten.</div>
 
-<h2>Admin-Zugang</h2>
-<p class="info">Der Admin-Schlüssel wird nur für diese Sitzung im Browser gespeichert und nicht im Quellcode hinterlegt.</p>
-<label>
-Admin-Schlüssel
-<input id="token" type="password" autocomplete="off" placeholder="Admin-Schlüssel eingeben">
-</label>
+  <label for="token">Admin-Schlüssel</label>
+  <input id="token" type="password" autocomplete="current-password" placeholder="Admin-Schlüssel eingeben">
+  <div style="margin-top:10px">
+    <button id="login">Anmelden</button>
+  </div>
 
-<h2>Neues Turnier</h2>
-<form id="createForm">
-<div class="grid">
-<label>
-Turnier-ID *
-<input id="id" required pattern="[A-Za-z0-9_-]+" maxlength="60" placeholder="z.B. winter2027">
-</label>
-<label>
-Datum
-<input id="datum" type="date">
-</label>
-<label style="grid-column:1/-1">
-Name *
-<input id="name" required maxlength="150" placeholder="Name des Turniers">
-</label>
-</div>
-<br>
-<button type="submit">Turnier anlegen</button>
-<div id="createMessage" class="message"></div>
-</form>
+  <div id="status" class="status"></div>
 
-<h2>Vorhandene Turniere</h2>
-<div id="list">Turniere werden geladen …</div>
+  <section id="adminArea" hidden>
+    <h2>Neues Turnier</h2>
+    <form id="createForm">
+      <div class="row">
+        <div>
+          <label for="newId">ID</label>
+          <input id="newId" required placeholder="z. B. vm2027">
+        </div>
+        <div>
+          <label for="newDate">Datum</label>
+          <input id="newDate" type="date">
+        </div>
+      </div>
+      <label for="newName">Turniername</label>
+      <input id="newName" required placeholder="z. B. Vereinsmeisterschaft 2027">
+      <div style="margin-top:14px">
+        <button type="submit">Turnier anlegen</button>
+      </div>
+    </form>
+
+    <h2>Turniere</h2>
+    <div id="tournaments"></div>
+  </section>
 </main>
+
+<div id="editModal" class="modal">
+  <div class="modal-box">
+    <h2 style="margin-top:0">Teilnehmer bearbeiten</h2>
+    <form id="editForm">
+      <input id="editId" type="hidden">
+      <input id="editTournamentId" type="hidden">
+
+      <label for="editVorname">Vorname *</label>
+      <input id="editVorname" required maxlength="100">
+
+      <label for="editNachname">Nachname *</label>
+      <input id="editNachname" required maxlength="100">
+
+      <label for="editPassnummer">Passnummer</label>
+      <input id="editPassnummer" maxlength="100">
+
+      <label for="editKategorie">Kategorie</label>
+      <input id="editKategorie" maxlength="100">
+
+      <label for="editBemerkung">Bemerkung</label>
+      <input id="editBemerkung" maxlength="500">
+
+      <div class="modal-actions">
+        <button type="submit">Speichern</button>
+        <button type="button" class="secondary" id="cancelEdit">Abbrechen</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <script>
 const API="https://turnierteilnahme-api.michael-hoever.workers.dev";
-const tokenInput=document.getElementById("token");
-const saved=sessionStorage.getItem("turnierteilnahme_admin_token");
-if(saved) tokenInput.value=saved;
 
-tokenInput.addEventListener("input",()=>{
- sessionStorage.setItem("turnierteilnahme_admin_token",tokenInput.value);
-});
+const $=id=>document.getElementById(id);
+const tokenInput=$("token");
+const statusBox=$("status");
 
-function esc(v){
- return String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+function setStatus(text){
+  statusBox.textContent=text;
+  statusBox.style.display=text ? "block" : "none";
 }
-function formatDate(v){
- return v?new Date(v+"T00:00:00").toLocaleDateString("de-DE"):"";
-}
+
 function authHeaders(){
- return {
-  "Content-Type":"application/json",
-  "Authorization":"Bearer "+tokenInput.value
- };
+  return {
+    "Authorization":"Bearer "+tokenInput.value.trim(),
+    "Content-Type":"application/json"
+  };
 }
 
-async function load(){
- const box=document.getElementById("list");
- try{
-  const r=await fetch(API+"/api/turniere");
-  const data=await r.json();
-  if(!r.ok||!data.ok) throw new Error(data.error||"Fehler");
-  const list=data.turniere||[];
-  if(!list.length){box.innerHTML='<p class="info">Keine Turniere vorhanden.</p>';return;}
-  box.innerHTML=list.map(t=>`
-   <div class="tournament">
-    <div>
-     <strong>${esc(t.name)}</strong>
-     <div class="meta">${esc(t.id)}${t.datum?" · "+esc(formatDate(t.datum)):""}</div>
-    </div>
-    <button class="danger" onclick="deleteTournament('${encodeURIComponent(t.id)}','${esc(t.name).replace(/'/g,"&#039;")}')">Löschen</button>
-   </div>
-  `).join("");
- }catch(e){
-  box.innerHTML='<p class="error">Turniere konnten nicht geladen werden.</p>';
- }
+async function api(path, options={}){
+  const res=await fetch(API+path, options);
+  let data=null;
+  try{data=await res.json()}catch{}
+  if(!res.ok){
+    throw new Error(data?.error || ("HTTP "+res.status));
+  }
+  return data;
 }
 
-document.getElementById("createForm").addEventListener("submit",async e=>{
- e.preventDefault();
- const msg=document.getElementById("createMessage");
- msg.textContent="";
- if(!tokenInput.value){msg.textContent="Bitte Admin-Schlüssel eingeben.";msg.className="message error";return;}
- const body={
-  id:document.getElementById("id").value.trim(),
-  name:document.getElementById("name").value.trim(),
-  datum:document.getElementById("datum").value
- };
- try{
-  const r=await fetch(API+"/api/turniere",{method:"POST",headers:authHeaders(),body:JSON.stringify(body)});
-  const data=await r.json();
-  if(!r.ok||!data.ok) throw new Error(data.error||"Turnier konnte nicht angelegt werden");
-  msg.textContent="Turnier erfolgreich angelegt.";
-  msg.className="message success";
-  e.target.reset();
-  await load();
- }catch(err){
-  msg.textContent=err.message;
-  msg.className="message error";
- }
+function esc(value){
+  return String(value ?? "").replace(/[&<>"']/g, c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+async function loadAdmin(){
+  setStatus("Lade Daten …");
+  try{
+    const tournaments=await api("/api/turniere");
+    $("adminArea").hidden=false;
+    await renderTournaments(tournaments);
+    sessionStorage.setItem("turnierteilnahme_admin_token", tokenInput.value.trim());
+    setStatus("Angemeldet.");
+  }catch(err){
+    $("adminArea").hidden=true;
+    setStatus("Fehler: "+err.message);
+  }
+}
+
+async function renderTournaments(tournaments){
+  const container=$("tournaments");
+  container.innerHTML="";
+
+  if(!tournaments.length){
+    container.textContent="Keine Turniere vorhanden.";
+    return;
+  }
+
+  for(const t of tournaments){
+    const div=document.createElement("div");
+    div.className="tournament";
+    div.innerHTML=`
+      <div class="tournament-head">
+        <div>
+          <div class="tournament-name">${esc(t.name)}</div>
+          <div class="tournament-date">${t.datum ? esc(t.datum) : ""} · ID: ${esc(t.id)}</div>
+        </div>
+        <button class="danger delete-tournament">Turnier löschen</button>
+      </div>
+      <div class="participants">Teilnehmer werden geladen …</div>
+    `;
+    container.appendChild(div);
+
+    div.querySelector(".delete-tournament").addEventListener("click",async()=>{
+      if(!confirm('Turnier "'+t.name+'" wirklich löschen?\\nAlle Teilnehmer dieses Turniers werden ebenfalls gelöscht.')) return;
+      try{
+        await api("/api/turniere/"+encodeURIComponent(t.id),{
+          method:"DELETE",
+          headers:authHeaders()
+        });
+        await loadAdmin();
+      }catch(err){
+        alert("Fehler: "+err.message);
+      }
+    });
+
+    const participantsBox=div.querySelector(".participants");
+    try{
+      const participants=await api("/api/turniere/"+encodeURIComponent(t.id)+"/teilnehmer");
+      renderParticipants(participantsBox,t,participants);
+    }catch(err){
+      participantsBox.textContent="Fehler beim Laden: "+err.message;
+    }
+  }
+}
+
+function renderParticipants(container,t,participants){
+  if(!participants.length){
+    container.textContent="Noch keine Teilnehmer.";
+    return;
+  }
+
+  const table=document.createElement("table");
+  table.innerHTML=`
+    <thead>
+      <tr>
+        <th>Nr.</th>
+        <th>Vorname</th>
+        <th>Nachname</th>
+        <th>Passnummer</th>
+        <th>Kategorie</th>
+        <th>Bemerkung</th>
+        <th>Aktionen</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+  const tbody=table.querySelector("tbody");
+
+  participants.forEach((p,index)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${index+1}</td>
+      <td>${esc(p.vorname)}</td>
+      <td>${esc(p.nachname)}</td>
+      <td>${esc(p.passnummer)}</td>
+      <td>${esc(p.kategorie)}</td>
+      <td>${esc(p.bemerkung)}</td>
+      <td class="actions">
+        <button class="secondary edit">Bearbeiten</button>
+        <button class="danger delete">Löschen</button>
+      </td>
+    `;
+
+    tr.querySelector(".edit").addEventListener("click",()=>{
+      openEdit(t,p);
+    });
+
+    tr.querySelector(".delete").addEventListener("click",async()=>{
+      if(!confirm("Diesen Teilnehmer wirklich löschen?")) return;
+      try{
+        await api("/api/teilnehmer/"+encodeURIComponent(p.id),{
+          method:"DELETE",
+          headers:authHeaders()
+        });
+        await loadAdmin();
+      }catch(err){
+        alert("Fehler: "+err.message);
+      }
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  container.innerHTML="";
+  container.appendChild(table);
+}
+
+function openEdit(t,p){
+  $("editId").value=p.id;
+  $("editTournamentId").value=t.id;
+  $("editVorname").value=p.vorname || "";
+  $("editNachname").value=p.nachname || "";
+  $("editPassnummer").value=p.passnummer || "";
+  $("editKategorie").value=p.kategorie || "";
+  $("editBemerkung").value=p.bemerkung || "";
+  $("editModal").style.display="flex";
+}
+
+function closeEdit(){
+  $("editModal").style.display="none";
+}
+
+$("login").addEventListener("click",loadAdmin);
+
+tokenInput.addEventListener("keydown",e=>{
+  if(e.key==="Enter") loadAdmin();
 });
 
-async function deleteTournament(id,name){
- if(!tokenInput.value){alert("Bitte zuerst den Admin-Schlüssel eingeben.");return;}
- if(!confirm("Turnier „"+name+"“ wirklich löschen? Alle Teilnehmer dieses Turniers werden ebenfalls gelöscht.")) return;
- try{
-  const r=await fetch(API+"/api/turniere/"+id,{method:"DELETE",headers:authHeaders()});
-  const data=await r.json();
-  if(!r.ok||!data.ok) throw new Error(data.error||"Löschen fehlgeschlagen");
-  await load();
-  alert("Turnier wurde gelöscht.");
- }catch(e){alert(e.message);}
-}
+$("createForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  try{
+    await api("/api/turniere",{
+      method:"POST",
+      headers:authHeaders(),
+      body:JSON.stringify({
+        id:$("newId").value.trim(),
+        name:$("newName").value.trim(),
+        datum:$("newDate").value
+      })
+    });
+    $("createForm").reset();
+    await loadAdmin();
+  }catch(err){
+    alert("Fehler: "+err.message);
+  }
+});
 
-load();
+$("editForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+
+  try{
+    await api("/api/teilnehmer/"+encodeURIComponent($("editId").value),{
+      method:"PUT",
+      headers:authHeaders(),
+      body:JSON.stringify({
+        vorname:$("editVorname").value.trim(),
+        nachname:$("editNachname").value.trim(),
+        passnummer:$("editPassnummer").value.trim(),
+        kategorie:$("editKategorie").value.trim(),
+        bemerkung:$("editBemerkung").value.trim()
+      })
+    });
+
+    closeEdit();
+    await loadAdmin();
+  }catch(err){
+    alert("Fehler: "+err.message);
+  }
+});
+
+$("cancelEdit").addEventListener("click",closeEdit);
+
+$("editModal").addEventListener("click",e=>{
+  if(e.target===$("editModal")) closeEdit();
+});
+
+const saved=sessionStorage.getItem("turnierteilnahme_admin_token");
+if(saved){
+  tokenInput.value=saved;
+  loadAdmin();
+}
 </script>
 </body>
 </html>
