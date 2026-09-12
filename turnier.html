@@ -222,7 +222,11 @@ document.getElementById("downloadCsv").addEventListener("click",async ()=>{
   const data=await r.json();
   if(!r.ok||!data.ok) throw new Error(data.error||"Teilnehmer konnten nicht geladen werden");
 
+  const turniername = document.title.replace(/\s*[–-]\s*Turnierteilnahme\s*$/i, "").trim() || "Turnier";
+
   const rows=[
+   [turniername],
+   [],
    ["Nr.","Vorname","Nachname","Passnummer","Kategorie","Bemerkung"]
   ];
 
