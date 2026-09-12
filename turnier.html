@@ -1,56 +1,269 @@
 <!DOCTYPE html>
-<html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Turnierteilnahme – VfM Bottrop</title>
 <style>
-body{font-family:Arial,sans-serif;margin:0;background:#fff;color:#111}header{padding:28px 20px;border-bottom:1px solid #ddd}
-main{max-width:1050px;margin:auto;padding:30px 20px}h1{margin:0 0 6px}h2{margin-top:30px}
-.meta,.small{color:#666}.form{border:1px solid #ddd;padding:20px;margin:25px 0}
-label{display:block;font-weight:bold;margin:14px 0 5px}input,textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #bbb;font:inherit}
-textarea{min-height:75px}button{background:#111;color:#fff;border:0;padding:10px 16px;cursor:pointer;margin:8px 6px 8px 0}
-.actions{margin:15px 0}table{border-collapse:collapse;width:100%;min-width:700px}th,td{border-bottom:1px solid #ddd;padding:10px;text-align:left;vertical-align:top}
-.table-wrap{overflow-x:auto}.message{display:none;background:#f3f3f3;padding:10px;margin-top:10px}.error{border:1px solid #ddd;padding:20px}
-.back{color:#111}.print-only{display:none}@media print{.form,.actions,.back{display:none}.print-only{display:block}}
-</style></head><body>
-<header><main><h1>Turnierteilnahme</h1><div>VfM Bottrop</div></main></header>
-<main><a class="back" href="index.html">← Zurück zur Turnierübersicht</a><div id="content"></div></main>
+body{font-family:Arial,sans-serif;margin:0;background:#fff;color:#111}
+header{padding:28px 20px;border-bottom:1px solid #ddd}
+main{max-width:1100px;margin:auto;padding:30px 20px}
+h1{margin:0 0 6px}h2{margin-top:30px}
+.back{display:inline-block;margin-bottom:20px;color:#111}
+.meta{color:#666;margin-bottom:20px}
+form{border:1px solid #ddd;padding:20px;margin:20px 0 30px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+label{display:flex;flex-direction:column;gap:6px;font-weight:bold}
+input,select,textarea{font:inherit;padding:10px;border:1px solid #bbb;background:#fff;box-sizing:border-box}
+textarea{min-height:90px;resize:vertical}
+.full{grid-column:1/-1}
+button{background:#111;color:#fff;border:0;padding:10px 16px;cursor:pointer}
+button:hover{opacity:.85}
+button:disabled{opacity:.5;cursor:wait}
+.message{margin-top:12px}
+.error{color:#b00020}
+.success{color:#176b2c}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #ddd;vertical-align:top}
+th{font-weight:bold}
+.empty,.loading{color:#666}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+
+<header>
+<main>
+<h1>Turnierteilnahme</h1>
+<div>VfM Bottrop</div>
+</main>
+</header>
+
+<main>
+<a class="back" href="index.html">← Zurück zu den Turnieren</a>
+
+<section id="turnier">
+<p class="loading">Turnier wird geladen …</p>
+</section>
+
+<section id="anmeldung" hidden>
+<h2>Anmeldung</h2>
+
+<form id="form">
+<div class="grid">
+
+<label>
+Vorname *
+<input id="vorname" name="vorname" maxlength="100" required>
+</label>
+
+<label>
+Nachname *
+<input id="nachname" name="nachname" maxlength="100" required>
+</label>
+
+<label>
+Passnummer
+<input id="passnummer" name="passnummer" maxlength="50">
+</label>
+
+<label>
+Kategorie
+<input id="kategorie" name="kategorie" maxlength="100">
+</label>
+
+<label class="full">
+Bemerkung
+<textarea id="bemerkung" name="bemerkung" maxlength="500"></textarea>
+</label>
+
+<div class="full">
+<button id="submit" type="submit">Anmelden</button>
+<div id="message" class="message"></div>
+</div>
+
+</div>
+</form>
+</section>
+
+<section id="teilnehmer-section" hidden>
+<h2>Teilnehmer</h2>
+<div id="count" class="meta"></div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Nr.</th>
+<th>Vorname</th>
+<th>Nachname</th>
+<th>Passnummer</th>
+<th>Kategorie</th>
+<th>Bemerkung</th>
+</tr>
+</thead>
+<tbody id="participants">
+<tr><td colspan="6" class="loading">Teilnehmer werden geladen …</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+</main>
+
 <script>
-const id=new URLSearchParams(location.search).get("turnier"), TKEY="turnierteilnahme_turniere";
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
-function tournaments(){return JSON.parse(localStorage.getItem(TKEY)||"[]")}
-function tournament(){return tournaments().find(t=>String(t.id)===String(id))}
-function key(){return "turnierteilnahme_teilnehmer_"+id}
-function load(){return JSON.parse(localStorage.getItem(key())||"[]")}
-function save(x){localStorage.setItem(key(),JSON.stringify(x))}
-function fmt(v){return v?new Date(v+"T00:00:00").toLocaleDateString("de-DE"):""}
-function render(){
- const t=tournament(),c=document.getElementById("content");
- if(!t){c.innerHTML='<div class="error"><h2>Turnier nicht gefunden</h2><p>Dieses Turnier existiert nicht oder wurde gelöscht.</p></div>';return}
- c.innerHTML=`<h2>${esc(t.name)}</h2><div class="meta">Turnierdatum: ${fmt(t.date)}</div>
- <div class="form"><h3>Für dieses Turnier anmelden</h3>
- <label>Vorname *</label><input id="vorname">
- <label>Nachname *</label><input id="nachname">
- <label>Passnummer</label><input id="passnummer">
- <label>Kategorie</label><input id="kategorie">
- <label>Bemerkung</label><textarea id="bemerkung"></textarea>
- <button onclick="register()">Anmelden</button><div id="msg" class="message"></div></div>
- <h2>Teilnehmer</h2><div id="count" class="small"></div>
- <div class="actions"><button onclick="csv()">Teilnehmerliste als CSV herunterladen</button><button onclick="print()">Drucken</button></div>
- <div class="table-wrap"><table><thead><tr><th>Nr.</th><th>Vorname</th><th>Nachname</th><th>Passnummer</th><th>Kategorie</th><th>Bemerkung</th></tr></thead><tbody id="rows"></tbody></table></div>
- <div class="print-only">${esc(t.name)} – Teilnehmerliste</div>`;
- draw()
+const API="https://turnierteilnahme-api.michael-hoever.workers.dev";
+
+const params=new URLSearchParams(location.search);
+const turnierId=params.get("turnier");
+
+const turnierBox=document.getElementById("turnier");
+const anmeldung=document.getElementById("anmeldung");
+const teilnehmerSection=document.getElementById("teilnehmer-section");
+const participants=document.getElementById("participants");
+const count=document.getElementById("count");
+const form=document.getElementById("form");
+const message=document.getElementById("message");
+const submit=document.getElementById("submit");
+
+function esc(v){
+ return String(v ?? "").replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+ }[c]));
 }
-function draw(){let x=load(),r=document.getElementById("rows");document.getElementById("count").textContent=x.length+" Teilnehmer";
-r.innerHTML=x.length?x.map((p,i)=>`<tr><td>${i+1}</td><td>${esc(p.v)}</td><td>${esc(p.n)}</td><td>${esc(p.p)}</td><td>${esc(p.k)}</td><td>${esc(p.b)}</td></tr>`).join(""):'<tr><td colspan="6">Noch keine Teilnehmer angemeldet.</td></tr>'}
-function register(){
- let v=document.getElementById("vorname").value.trim(),n=document.getElementById("nachname").value.trim(),msg=document.getElementById("msg");
- if(!v||!n){msg.style.display="block";msg.textContent="Bitte Vorname und Nachname ausfüllen.";return}
- let x=load();x.push({v,n,p:document.getElementById("passnummer").value.trim(),k:document.getElementById("kategorie").value.trim(),b:document.getElementById("bemerkung").value.trim()});save(x);
- ["vorname","nachname","passnummer","kategorie","bemerkung"].forEach(i=>document.getElementById(i).value="");
- msg.style.display="block";msg.textContent="Teilnahme erfolgreich eingetragen.";draw()
+
+function formatDate(v){
+ if(!v)return "";
+ const d=new Date(v+"T00:00:00");
+ return d.toLocaleDateString("de-DE");
 }
-function csv(){
- let t=tournament(),x=load(),rows=[["Nr.","Vorname","Nachname","Passnummer","Kategorie","Bemerkung"],...x.map((p,i)=>[i+1,p.v,p.n,p.p,p.k,p.b])];
- let q=s=>'"'+String(s??"").replace(/"/g,'""')+'"',data="\uFEFF"+rows.map(r=>r.map(q).join(";")).join("\r\n"),u=URL.createObjectURL(new Blob([data],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=u;a.download=(t.name||"Turnier")+"_Teilnehmer.csv";a.click();URL.revokeObjectURL(u)
+
+async function loadTurnier(){
+ if(!turnierId){
+  turnierBox.innerHTML='<p class="error">Kein Turnier ausgewählt.</p>';
+  return;
+ }
+
+ try{
+  const r=await fetch(API+"/api/turniere/"+encodeURIComponent(turnierId));
+  const data=await r.json();
+
+  if(!r.ok || !data.ok){
+   throw new Error(data.error||"Turnier nicht gefunden");
+  }
+
+  const t=data.turnier;
+
+  document.title=t.name+" – Turnierteilnahme";
+
+  turnierBox.innerHTML=`
+   <h2>${esc(t.name)}</h2>
+   ${t.datum?`<div class="meta">Datum: ${esc(formatDate(t.datum))}</div>`:""}
+  `;
+
+  anmeldung.hidden=false;
+  teilnehmerSection.hidden=false;
+
+  await loadParticipants();
+
+ }catch(e){
+  console.error(e);
+  turnierBox.innerHTML='<p class="error">Das Turnier konnte nicht geladen werden.</p>';
+ }
 }
-function print(){window.print()} render();
-</script></body></html>
+
+async function loadParticipants(){
+ try{
+  const r=await fetch(
+   API+"/api/turniere/"+encodeURIComponent(turnierId)+"/teilnehmer"
+  );
+
+  const data=await r.json();
+
+  if(!r.ok || !data.ok){
+   throw new Error(data.error||"Teilnehmer konnten nicht geladen werden");
+  }
+
+  const list=data.teilnehmer||[];
+
+  count.textContent=list.length+
+   (list.length===1?" Teilnehmer":" Teilnehmer");
+
+  if(!list.length){
+   participants.innerHTML=
+    '<tr><td colspan="6" class="empty">Noch keine Teilnehmer angemeldet.</td></tr>';
+   return;
+  }
+
+  participants.innerHTML=list.map(p=>`
+   <tr>
+    <td>${esc(p.nr)}</td>
+    <td>${esc(p.vorname)}</td>
+    <td>${esc(p.nachname)}</td>
+    <td>${esc(p.passnummer)}</td>
+    <td>${esc(p.kategorie)}</td>
+    <td>${esc(p.bemerkung)}</td>
+   </tr>
+  `).join("");
+
+ }catch(e){
+  console.error(e);
+  participants.innerHTML=
+   '<tr><td colspan="6" class="error">Die Teilnehmerliste konnte nicht geladen werden.</td></tr>';
+ }
+}
+
+form.addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ message.textContent="";
+ message.className="message";
+ submit.disabled=true;
+ submit.textContent="Wird angemeldet …";
+
+ const body={
+  vorname:document.getElementById("vorname").value.trim(),
+  nachname:document.getElementById("nachname").value.trim(),
+  passnummer:document.getElementById("passnummer").value.trim(),
+  kategorie:document.getElementById("kategorie").value.trim(),
+  bemerkung:document.getElementById("bemerkung").value.trim()
+ };
+
+ try{
+  const r=await fetch(
+   API+"/api/turniere/"+encodeURIComponent(turnierId)+"/teilnehmer",
+   {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(body)
+   }
+  );
+
+  const data=await r.json();
+
+  if(!r.ok || !data.ok){
+   throw new Error(data.error||"Anmeldung fehlgeschlagen");
+  }
+
+  form.reset();
+  message.textContent="Teilnehmer erfolgreich angemeldet.";
+  message.className="message success";
+
+  await loadParticipants();
+
+ }catch(e){
+  console.error(e);
+  message.textContent=e.message||"Anmeldung fehlgeschlagen.";
+  message.className="message error";
+ }finally{
+  submit.disabled=false;
+  submit.textContent="Anmelden";
+ }
+});
+
+loadTurnier();
+</script>
+
+</body>
+</html>
